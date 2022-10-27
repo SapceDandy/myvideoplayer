@@ -23,13 +23,13 @@ export default function App() {
     setCollectedCoin(!collectedCoin);
     try {
       await videoRef.current.loadAsync( 
-          {uri: `${mediaJSON.categories[0].videos[currentVideo]["sources"]}`},
-          {shouldPlay: true},
+        {shouldPlay: true},
+        {uri: `${mediaJSON.categories[0].videos[currentVideo]["sources"]}`},
       )
     } catch(error) {
       await videoRef.current.isPlaying( 
-        {uri: "https://www.automotiveaddicts.com/wp-content/uploads/2009/04/porsche-gt3-rsr.jpg"},
         {shouldPlay: true},
+        {uri: "https://www.automotiveaddicts.com/wp-content/uploads/2009/04/porsche-gt3-rsr.jpg"},
       )
     }
   }
