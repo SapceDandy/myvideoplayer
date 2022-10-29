@@ -5,14 +5,12 @@ import { Video } from 'expo-av';
 
 export default function App() {
   const videoRef = useRef();
-  //const [videoEnd, setVideoEnd] = useState(false);
   const [currentStatus, setCurrentStatus] = useState(0);
   const [currentVideo, setCurrentVideo] = useState(0);
   const [collectedCoin, setCollectedCoin] = useState(false);
   const [points, setPoints] = useState(0);
 
   const collectYourCoins = async () => {
-    //setVideoEnd(!videoEnd);
     setCollectedCoin(!collectedCoin);
     setPoints(points + 1);
     try {
@@ -37,10 +35,8 @@ export default function App() {
   }
 
   const nextVideo = async () => {
-    //setVideoEnd(!videoEnd);
     setCollectedCoin(!collectedCoin);
     try {
-      //(currentVideo != (mediaJSON.categories[0].videos.length - 1)) ?  setCurrentVideo(currentVideo + 1) : setCurrentVideo(0);
       await videoRef.current.loadAsync({uri: `${mediaJSON.categories[0].videos[currentVideo]["sources"]}`})
       await videoRef.current.playAsync()
     } catch(error) {
@@ -92,7 +88,7 @@ export default function App() {
     <>
       <SafeAreaView>
         <View style = {{display: "flex", flexDirection: "column", height: "100%", justifyContent: "center"}}>
-          <View style={styles.topContainer}>      
+          <View style = {styles.topContainer}>      
             <StatusBar style="auto" />
             <View style = {styles.textInTopContainer}>
               <Text>Your Points: {points}</Text>
@@ -101,9 +97,8 @@ export default function App() {
           <View style={styles.videoContainer}>
             <Video
               ref = {videoRef}
-              /*`${mediaJSON.categories[0].videos[currentVideo]["sources"]}`*/
               source = {{uri: ((points === 0) && `${mediaJSON.categories[0].videos[currentVideo]["sources"]}`)}}
-              onPlaybackStatusUpdate = {(status) => {setCurrentStatus(status)}}/*((status.didJustFinish) && setVideoEnd(!videoEnd))*/
+              onPlaybackStatusUpdate = {(status) => {setCurrentStatus(status)}}
               shouldPlay
               style = {{width: "100%", height: "100%"}}
             />
@@ -121,7 +116,7 @@ export default function App() {
             {collectedCoin && <Text style = {{fontWeight: "bold"}}>{`${mediaJSON.categories[0].videos[currentVideo]["title"]}`}</Text>}
             {collectedCoin && <Text>{`${mediaJSON.categories[0].videos[currentVideo]["subtitle"]}`}</Text>}
             <View style = {{flexDirection: "column", width: "60%", marginTop: 32, rowGap: 16}}>
-              {<Button title = "Get Your Point" color = "blue" disabled = {(currentStatus?.isPlaying || ((currentStatus?.positionMillis <= 1000) || !(currentStatus?.positionMillis)) || collectedCoin)} onPress = {() => collectYourCoins()}/>}
+              {<Button title = "Get Your Point" color = "blue" disabled = {(currentStatus?.isPlaying || ((currentStatus?.positionMillis <= 1000) || !(currentStatus?.positionMillis)) || collectedCoin)} onPress = {() => collectYourCoins()} />}
               {(currentStatus?.positionMillis >= 5000) && (currentStatus?.isPlaying ) && (!collectedCoin) && <Button title = "Skip Video" color = "blue" onPress = {() => skipVideo()} />}
               {collectedCoin && <Button title = "Watch Another Video" color = "blue" onPress = {() => nextVideo()} />}
             </View>
@@ -157,5 +152,5 @@ const styles = StyleSheet.create({
     padding: 32,
     alignItems: 'center',
     justifyContent: 'center',
-  },
+  }
 });
