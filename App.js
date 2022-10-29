@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { useState, useRef } from "react";
-import { StyleSheet, Text, View, Button, Image } from 'react-native';
+import { StyleSheet, Text, View, Button, Image, SafeAreaView } from 'react-native';
 import { Video } from 'expo-av';
 
 export default function App() {
@@ -23,6 +23,17 @@ export default function App() {
     } catch(error) {
       console.log(error)
     }
+  }
+
+  const skipVideo = async () => {
+    try {
+      await videoRef.current.unloadAsync();
+      await videoRef.current.loadAsync({uri: `${mediaJSON.categories[0].videos[(currentVideo < (mediaJSON.categories[0].videos.length - 1)) ? currentVideo + 1 : 0]["sources"]}`});
+      await videoRef.current.playAsync();
+    } catch(error) {
+      console.log(error)
+    }
+    (currentVideo != (mediaJSON.categories[0].videos.length - 1)) ? setCurrentVideo(currentVideo + 1) : setCurrentVideo(0);
   }
 
   const nextVideo = async () => {
@@ -78,38 +89,46 @@ export default function App() {
     ]}]};
     
   return (
-    <View style = {{display: "flex", flexDirection: "column", height: "100%", justifyContent: "center"}}>
-      <View style={styles.topContainer}>      
-        <StatusBar style="auto" />
-        <View style = {styles.textInTopContainer}/>
-        <View style = {styles.textInTopContainer}>
-          <Text>Your Points: {points}</Text>
+    <>
+      <SafeAreaView>
+        <View style = {{display: "flex", flexDirection: "column", height: "100%", justifyContent: "center"}}>
+          <View style={styles.topContainer}>      
+            <StatusBar style="auto" />
+            <View style = {styles.textInTopContainer}>
+              <Text>Your Points: {points}</Text>
+            </View>
+          </View>
+          <View style={styles.videoContainer}>
+            <Video
+              ref = {videoRef}
+              /*`${mediaJSON.categories[0].videos[currentVideo]["sources"]}`*/
+              source = {{uri: ((points === 0) && `${mediaJSON.categories[0].videos[currentVideo]["sources"]}`)}}
+              onPlaybackStatusUpdate = {(status) => {setCurrentStatus(status)}}/*((status.didJustFinish) && setVideoEnd(!videoEnd))*/
+              shouldPlay
+              style = {{width: "100%", height: "100%"}}
+            />
+            {!collectedCoin && <Text style = {{fontWeight: "bold"}}>{`${mediaJSON.categories[0].videos[currentVideo]["title"]}`}</Text>}
+            {!collectedCoin && <Text>{`${mediaJSON.categories[0].videos[currentVideo]["subtitle"]}`}</Text>}
+            <View style = {{width: "100%", height: "100%", position: "absolute", justifyContent: "center", alignItems: "center"}}>
+              {collectedCoin && <Image source = {{
+                width: "100%",
+                height: "100%",
+                uri: `${mediaJSON.categories[0].videos[currentVideo]["thumb"]}`}} 
+                style = {{width: "100%", height: "100%"}}/>}
+            </View>
+          </View>
+          <View style={styles.container}> 
+            {collectedCoin && <Text style = {{fontWeight: "bold"}}>{`${mediaJSON.categories[0].videos[currentVideo]["title"]}`}</Text>}
+            {collectedCoin && <Text>{`${mediaJSON.categories[0].videos[currentVideo]["subtitle"]}`}</Text>}
+            <View style = {{flexDirection: "column", width: "60%", marginTop: 32, rowGap: 16}}>
+              {<Button title = "Get Your Point" color = "blue" disabled = {(currentStatus?.isPlaying || ((currentStatus?.positionMillis <= 1000) || !(currentStatus?.positionMillis)) || collectedCoin)} onPress = {() => collectYourCoins()}/>}
+              {(currentStatus?.positionMillis >= 5000) && (currentStatus?.isPlaying ) && (!collectedCoin) && <Button title = "Skip Video" color = "blue" onPress = {() => skipVideo()} />}
+              {collectedCoin && <Button title = "Watch Another Video" color = "blue" onPress = {() => nextVideo()} />}
+            </View>
+          </View>
         </View>
-      </View>
-      <View style={styles.videoContainer}>
-        <Video
-          ref = {videoRef}
-          /*`${mediaJSON.categories[0].videos[currentVideo]["sources"]}`*/
-          source = {{uri: ((points === 0) && `${mediaJSON.categories[0].videos[currentVideo]["sources"]}`)}}
-          onPlaybackStatusUpdate = {(status) => {setCurrentStatus(status)}}/*((status.didJustFinish) && setVideoEnd(!videoEnd))*/
-          shouldPlay
-          style = {{width: "100%", height: "100%"}}
-        />
-        {!collectedCoin && <Text style = {{fontWeight: "bold"}}>{`${mediaJSON.categories[0].videos[currentVideo]["title"]}`}</Text>}
-        {!collectedCoin && <Text>{`${mediaJSON.categories[0].videos[currentVideo]["subtitle"]}`}</Text>}
-        <View style = {{width: "100%", height: "100%", position: "absolute", justifyContent: "center", alignItems: "center"}}>
-          {collectedCoin && <Image source = {{uri: `${mediaJSON.categories[0].videos[currentVideo]["thumb"]}`}} style = {{width: "100%", height: "100%"}}/>}
-        </View>
-      </View>
-      <View style={styles.container}> 
-        {collectedCoin && <Text style = {{fontWeight: "bold"}}>{`${mediaJSON.categories[0].videos[currentVideo]["title"]}`}</Text>}
-        {collectedCoin && <Text>{`${mediaJSON.categories[0].videos[currentVideo]["subtitle"]}`}</Text>}
-        <View style = {{flexDirection: "column", width: "60%", marginTop: 32, rowGap: 16}}>
-          {<Button title = "Get Your Point" color = "blue" disabled = {(currentStatus?.isPlaying || ((currentStatus?.positionMillis <= 1000) || !(currentStatus?.positionMillis)) || collectedCoin)} onPress = {() => collectYourCoins()}/>}
-          {collectedCoin && <Button title = "Watch Another Video" color = "blue" onPress = {() => nextVideo()} />}
-        </View>
-      </View>
-    </View>
+      </SafeAreaView>
+    </>
   );
 }
 
