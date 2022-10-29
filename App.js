@@ -5,32 +5,35 @@ import { Video } from 'expo-av';
 
 export default function App() {
   const videoRef = useRef();
-  const [videoEnd, setVideoEnd] = useState(false);
+  //const [videoEnd, setVideoEnd] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState(0);
   const [currentVideo, setCurrentVideo] = useState(0);
-  const [currentVideoA, setCurrentVideoA] = useState(0);
   const [collectedCoin, setCollectedCoin] = useState(false);
   const [points, setPoints] = useState(0);
 
-  const collectYourCoins = () => {
+  const collectYourCoins = async () => {
+    //setVideoEnd(!videoEnd);
     setCollectedCoin(!collectedCoin);
     setPoints(points + 1);
-    (currentVideoA != (mediaJSON.categories[0].videos.length - 1)) ? setCurrentVideoA(currentVideoA + 1) : setCurrentVideoA(0);
+    try {
+      (currentVideo != (mediaJSON.categories[0].videos.length - 1)) ? setCurrentVideo(currentVideo + 1) : setCurrentVideo(0);
+      await videoRef.current.stopAsync();
+      await videoRef.current.unloadAsync();
+      await videoRef.current.loadAsync();
+    } catch(error) {
+      console.log(error)
+    }
   }
 
   const nextVideo = async () => {
-    (currentVideo != (mediaJSON.categories[0].videos.length - 1)) ?  setCurrentVideo(currentVideo + 1) : setCurrentVideo(0);
-    setVideoEnd(!videoEnd);
+    //setVideoEnd(!videoEnd);
     setCollectedCoin(!collectedCoin);
     try {
-      await videoRef.current.loadAsync( 
-        {shouldPlay: true},
-        {uri: `${mediaJSON.categories[0].videos[currentVideo]["sources"]}`},
-      )
+      //(currentVideo != (mediaJSON.categories[0].videos.length - 1)) ?  setCurrentVideo(currentVideo + 1) : setCurrentVideo(0);
+      await videoRef.current.loadAsync({uri: `${mediaJSON.categories[0].videos[currentVideo]["sources"]}`})
+      await videoRef.current.playAsync()
     } catch(error) {
-      await videoRef.current.isPlaying( 
-        {shouldPlay: true},
-        {uri: "https://www.automotiveaddicts.com/wp-content/uploads/2009/04/porsche-gt3-rsr.jpg"},
-      )
+      console.log(error)
     }
   }
 
@@ -86,20 +89,23 @@ export default function App() {
       <View style={styles.videoContainer}>
         <Video
           ref = {videoRef}
-          source = {{uri: `${mediaJSON.categories[0].videos[currentVideo]["sources"]}`}}
-          onPlaybackStatusUpdate = {(status) =>  {(status.didJustFinish || status.isPlaying) && setVideoEnd(!videoEnd)}}
+          /*`${mediaJSON.categories[0].videos[currentVideo]["sources"]}`*/
+          source = {{uri: ((points === 0) && `${mediaJSON.categories[0].videos[currentVideo]["sources"]}`)}}
+          onPlaybackStatusUpdate = {(status) => {setCurrentStatus(status)}}/*((status.didJustFinish) && setVideoEnd(!videoEnd))*/
           shouldPlay
           style = {{width: "100%", height: "100%"}}
         />
+        {!collectedCoin && <Text style = {{fontWeight: "bold"}}>{`${mediaJSON.categories[0].videos[currentVideo]["title"]}`}</Text>}
+        {!collectedCoin && <Text>{`${mediaJSON.categories[0].videos[currentVideo]["subtitle"]}`}</Text>}
         <View style = {{width: "100%", height: "100%", position: "absolute", justifyContent: "center", alignItems: "center"}}>
-          {collectedCoin && <Image source = {{uri: `${mediaJSON.categories[0].videos[currentVideoA]["thumb"]}`}} style = {{width: "100%", height: "100%"}}/>}
+          {collectedCoin && <Image source = {{uri: `${mediaJSON.categories[0].videos[currentVideo]["thumb"]}`}} style = {{width: "100%", height: "100%"}}/>}
         </View>
       </View>
-      <View style={styles.container}>      
-        <Text style = {{fontWeight: "bold"}}>{`${mediaJSON.categories[0].videos[currentVideoA]["title"]}`}</Text>
-        <Text>{`${mediaJSON.categories[0].videos[currentVideoA]["subtitle"]}`}</Text>
+      <View style={styles.container}> 
+        {collectedCoin && <Text style = {{fontWeight: "bold"}}>{`${mediaJSON.categories[0].videos[currentVideo]["title"]}`}</Text>}
+        {collectedCoin && <Text>{`${mediaJSON.categories[0].videos[currentVideo]["subtitle"]}`}</Text>}
         <View style = {{flexDirection: "column", width: "60%", marginTop: 32, rowGap: 16}}>
-          {<Button title = "Get Your Point" color = "blue" disabled = {(!videoEnd || collectedCoin)} onPress = {() => collectYourCoins()}/>}
+          {<Button title = "Get Your Point" color = "blue" disabled = {(currentStatus?.isPlaying || ((currentStatus?.positionMillis <= 1000) || !(currentStatus?.positionMillis)) || collectedCoin)} onPress = {() => collectYourCoins()}/>}
           {collectedCoin && <Button title = "Watch Another Video" color = "blue" onPress = {() => nextVideo()} />}
         </View>
       </View>
@@ -128,8 +134,8 @@ const styles = StyleSheet.create({
   },
   videoContainer: {
     flex: 1,
-    paddingLeft: 16,
-    paddingRight: 16,
+    width: "100%",
+    padding: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },
