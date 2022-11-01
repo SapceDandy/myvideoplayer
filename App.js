@@ -5,9 +5,9 @@ import { Video } from 'expo-av';
 
 export default function App() {
   const videoRef = useRef();
+  const [collectedCoin, setCollectedCoin] = useState(false);
   const [currentStatus, setCurrentStatus] = useState(0);
   const [currentVideo, setCurrentVideo] = useState(0);
-  const [collectedCoin, setCollectedCoin] = useState(false);
   const [points, setPoints] = useState(0);
 
   const collectYourCoins = async () => {
@@ -106,10 +106,8 @@ export default function App() {
             {!collectedCoin && <Text style = {{fontWeight: "bold"}}>{`${mediaJSON.categories[0].videos[currentVideo]["title"]}`}</Text>}
             {!collectedCoin && <Text>{`${mediaJSON.categories[0].videos[currentVideo]["subtitle"]}`}</Text>}
             <View style = {{width: "100%", height: "100%", position: "absolute", justifyContent: "center", alignItems: "center"}}>
-              {collectedCoin && <Image source = {{
-                width: "100%",
-                height: "100%",
-                uri: `${mediaJSON.categories[0].videos[currentVideo]["thumb"]}`}} 
+              {collectedCoin && <Image 
+                source = {{ width: "100%", height: "100%", uri: `${mediaJSON.categories[0].videos[currentVideo]["thumb"]}` }} 
                 style = {{width: "100%", height: "100%"}}/>}
             </View>
           </View>
