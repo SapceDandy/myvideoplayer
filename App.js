@@ -108,7 +108,8 @@ export default function App() {
             <View style = {{width: "100%", height: "100%", position: "absolute", justifyContent: "center", alignItems: "center"}}>
               {collectedCoin && <Image 
                 source = {{ width: "100%", height: "100%", uri: `${mediaJSON.categories[0].videos[currentVideo]["thumb"]}` }} 
-                style = {{width: "100%", height: "100%"}}/>}
+                style = {{width: "100%", height: "100%"}}/>
+              }
             </View>
           </View>
           <View style={styles.container}> 
