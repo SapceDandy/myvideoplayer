@@ -11,10 +11,10 @@ export default function App() {
   const [points, setPoints] = useState(0);
 
   const collectYourCoins = async () => {
+    (currentVideo != (mediaJSON.categories[0].videos.length - 1)) ? setCurrentVideo(currentVideo + 1) : setCurrentVideo(0);
     setCollectedCoin(!collectedCoin);
     setPoints(points + 1);
     try {
-      (currentVideo != (mediaJSON.categories[0].videos.length - 1)) ? setCurrentVideo(currentVideo + 1) : setCurrentVideo(0);
       await videoRef.current.stopAsync();
       await videoRef.current.unloadAsync();
       await videoRef.current.loadAsync();
